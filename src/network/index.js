@@ -1,3 +1,8 @@
+/*
+	This is the main network API.
+	Network controller functions are grouped and exposed here.
+*/
+
 module.exports = { accessPoint, user, status, start }
 
 const rmi = require('./rmi'),
@@ -11,8 +16,12 @@ const rmi = require('./rmi'),
 	  Netmask = require('netmask').Netmask,
 	  security = require('./security')
 
+
 function start() {
+	// Refresh access point connection status every 5min
 	monitorConnectionStatus()
+
+	// DEPRECATED: will be removed to separate module
 	security.startSecurityThreatProcessor()
 }
 

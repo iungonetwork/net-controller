@@ -1,8 +1,15 @@
+/*
+	Security related controllers
+*/
+
 const 
 	boom = require('boom'),
 	{asyncMiddleware, log} = require('./util'),
 	network = require('../network')
 
+/*
+	Get security params for access point.
+*/
 module.exports.getParams = asyncMiddleware(async(req, res) => {
 	const accessPointId = req.params.accessPointId
 	if (!accessPointId) {
@@ -11,6 +18,9 @@ module.exports.getParams = asyncMiddleware(async(req, res) => {
 	res.send(await network.accessPoint(accessPointId).fetchSecuritySettings())
 })
 
+/*
+	Set security params for access point.
+*/
 module.exports.setParams = asyncMiddleware(async(req, res) => {
 	const accessPointId = req.params.accessPointId
 	if (!accessPointId) {
@@ -30,6 +40,11 @@ module.exports.setParams = asyncMiddleware(async(req, res) => {
 	res.send(await network.accessPoint(accessPointId).fetchSecuritySettings())
 })
 
+/*
+	Execute security action.
+	Allowed actions:
+		- {"action": "unblock", "ipAddress": "--ip-address-to-unblock--"}
+*/
 module.exports.executeAction = asyncMiddleware(async(req, res) => {
 	const accessPointId = req.params.accessPointId
 	if (!accessPointId) {
@@ -45,6 +60,10 @@ module.exports.executeAction = asyncMiddleware(async(req, res) => {
 	res.send(result)
 })
 
+/*
+	Get security events for access point.
+	TODO filter
+*/
 module.exports.reportEvents = asyncMiddleware(async(req, res) => {
 	const accessPointId = req.params.accessPointId
 	if (!accessPointId) {

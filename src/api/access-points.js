@@ -1,8 +1,15 @@
+/*
+	Access point related API endpoints
+*/
+
 const 
 	boom = require('boom'),
 	{asyncMiddleware, log} = require('./util'),
 	network = require('../network')
 
+/*
+	Register new access point to the network
+*/
 module.exports.create = asyncMiddleware(async(req, res) => {
 	// TODO validate accessPointId
 	// TODO check for duplicate id
@@ -24,6 +31,9 @@ module.exports.create = asyncMiddleware(async(req, res) => {
 	res.json(accessPoint)
 })
 
+/*
+	Reboot access point
+*/
 module.exports.reboot = asyncMiddleware(async(req, res, next) => {
 	const accessPointId = req.params.accessPointId
 	if (!accessPointId) {
@@ -44,6 +54,9 @@ module.exports.reboot = asyncMiddleware(async(req, res, next) => {
 	res.json({success: status})
 })
 
+/*
+	Change SSID of the access point (sync)
+*/
 module.exports.setSsid = asyncMiddleware(async(req, res, next) => {
 
 	const accessPointId = req.params.accessPointId
@@ -71,6 +84,9 @@ module.exports.setSsid = asyncMiddleware(async(req, res, next) => {
 	res.json({success: status})
 })
 
+/*
+	Remove access point from the network
+*/
 module.exports.kill = asyncMiddleware(async(req, res) => {
 	const accessPointId = req.params.accessPointId
 	if (!accessPointId) {
@@ -82,6 +98,9 @@ module.exports.kill = asyncMiddleware(async(req, res) => {
 	res.send({success: status})
 })
 
+/*
+	DEPRECATED: replaced by security sub-system
+*/
 module.exports.isolateClient = asyncMiddleware(async(req, res) => {
 	const accessPointId = req.params.accessPointId
 	if (!accessPointId) {
@@ -98,6 +117,9 @@ module.exports.isolateClient = asyncMiddleware(async(req, res) => {
 	res.send({success: status})
 })
 
+/*
+	Used by OpenVPN to report access points connection state change
+*/
 module.exports.setConnectionStatus = asyncMiddleware(async(req, res) => {
 	const accessPointId = req.params.accessPointId
 	if (!accessPointId) {

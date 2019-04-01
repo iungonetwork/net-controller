@@ -1,8 +1,15 @@
+/*
+	User related controllers.
+*/
+
 const 
 	boom = require('boom'),
 	{asyncMiddleware, log} = require('./util'),
 	network = require('../network')
 
+/*
+	Create network user
+*/
 module.exports.create = asyncMiddleware(async(req, res) => {
 
 	const userId = req.body.userId
@@ -15,7 +22,9 @@ module.exports.create = asyncMiddleware(async(req, res) => {
 	res.json(user)
 })
 
-
+/*
+	Get user network access credentials.
+*/
 module.exports.getCredentials = asyncMiddleware(async(req, res) => {
 	const userId = req.params.userId
 	const user = {
@@ -25,7 +34,9 @@ module.exports.getCredentials = asyncMiddleware(async(req, res) => {
 	res.send(user)
 })
 
-
+/*
+	Disable user.
+*/
 module.exports.disable = asyncMiddleware(async(req, res) => {
 	const userId = req.params.userId
 	if (!userId) {
@@ -37,7 +48,10 @@ module.exports.disable = asyncMiddleware(async(req, res) => {
 	res.json({success: status})
 })
 
-
+/*
+	Get captive credentials for user (it is also access point specific).
+	This is related to Coova Chilli auth mechanism.
+*/
 module.exports.getCaptiveCredentials = asyncMiddleware(async(req, res) => {
 
 	const userId = req.params.userId

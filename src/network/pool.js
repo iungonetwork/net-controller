@@ -1,4 +1,6 @@
-// Address pool for access points
+/*
+	Access point address pool manager
+*/
 
 const Netmask = require('netmask').Netmask
 	  redis = require('../redis'),
@@ -7,12 +9,18 @@ const Netmask = require('netmask').Netmask
 	  _set = (name) => NAMESPACE + ':' + name,
 	  log = require('../log')('pool')
 
+/*
+	Get IP addess from the pool
+*/
 async function pop() {
 	const address = await redis.pspop(_set('available'))
 	await redis.psadd(_set('used'), address)
 	return address
 }
 
+/*
+	Check if pool is initialized
+*/
 function isInit(val) {
 	const key = NAMESPACE + ":net"
 	if (val) {
@@ -22,10 +30,18 @@ function isInit(val) {
 	}
 }
 
+/*
+	Get available addressed in the pool
+*/
 function available() {
 	return redis.psmembers(_set('available'))
 }
 
+/*
+	Initialize pool
+	Initialize the pool to given sub-net, excluding those matching exclude regexp.
+	DEPRECATED: should be moved out of this module, should be a manual, "one-time" setup operation
+*/
 async function init(subnet, exclude) {
 
 	log.debug('initializing IP pool in subnet %s excluding %s', subnet, exclude)
@@ -43,6 +59,10 @@ async function init(subnet, exclude) {
 	return pool
 }
 
+/*
+	Check status and init on startup
+	DEPRECATED
+*/
 isInit().then(net => {
 	if (net) {
 		log.debug('Pool initialized to %s', net)

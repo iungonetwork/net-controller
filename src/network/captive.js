@@ -1,11 +1,24 @@
+/*
+	Captivity helper
+*/
+
 const crypto = require('crypto'),
 	  xor = require('buffer-xor'),
 	  log = require('../log')('captive')
 
+/*
+	Generate a secret for access point captive service (Coova Chilli)
+*/
 module.exports.generateSecret = function() {
 	return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
+/*
+	Helper function for captivity app
+	Encodes user password given access point secret and challenge
+
+	Basically: md5(challenge.secret)^password
+*/
 module.exports.manglePassword = function(challenge, secret, password) {
 	const md = crypto.createHash('md5'),
 		  challengeBuffer = Buffer.alloc(32),

@@ -1,3 +1,9 @@
+/*
+	OpenVPN management API.
+	TODO: move connection params out of this module
+	TODO: monitor OpenVPN connect/disconnect events via management interface
+*/
+
 const Telnet = require('telnet-client'),
 	  fs = require('fs'),
 	  Netmask = require('netmask').Netmask,
@@ -11,6 +17,11 @@ const EXEC_TIMEOUT = 2000,
 	  port = process.env.OPENVPN_MANAGEMENT_PORT || 7505,
 	  ccd = process.env.OPENVPN_CCD_DIR || '/ccd'
 
+/*
+	Adds entry in CCD with IP address bound to access point
+	This should probly be deprecated and moved to connect hook to
+	get IP of AP dynamically.
+*/
 function bindAddress(commonName, ipAddress, netMask) {
 	return new Promise((resolve, reject) => {
 		const filename = ccd + '/' + commonName,
@@ -22,6 +33,10 @@ function bindAddress(commonName, ipAddress, netMask) {
 	})
 }
 
+/*
+	Request and parse OpenVPN service status
+	Reports real/virtual IPs of all clients
+*/
 function getStatus() {
 	return send('status').then(response => {
 
@@ -62,6 +77,9 @@ function getStatus() {
 	})
 }
 
+/*
+	Send command to management interface
+*/
 function send(command) {
 	// it seems that Promises API of telnet lib is broken
 	// wraping to promise manually
@@ -89,6 +107,9 @@ function send(command) {
 	})
 }
 
+/*
+	Send "kill" command to OpenVPN service to disconnect node immediatly
+*/
 function kill(commonName) {
 	return send('kill ' + commonName).then(response => {
 		return true

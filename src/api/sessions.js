@@ -1,3 +1,7 @@
+/*
+	Session related controllers.
+*/
+
 const 
 	boom = require('boom'),
 	{asyncMiddleware, log} = require('./util'),
@@ -12,6 +16,10 @@ const amqpChannel = amqpConnection.createChannel({
   	setup: channel => channel.assertQueue(amqpQueueName, {durable: true})
 })
 
+/*
+	This is used by FreeRADIUS to report session state change.
+	Session information is fetched from DB and if session is closed it is reported to accounting.
+*/
 module.exports.check = asyncMiddleware(async(req, res) => {
 	log.debug('incoming session notification: %s', req.body)
 	const sessionId = req.params.sessionId;

@@ -13,13 +13,17 @@ const app = module.exports = express()
 app.use(bodyParser.json())
 app.use(logReqRes)
 
-// Get network status
+/*
+	Report high level network status
+*/
 app.get('/', asyncMiddleware(async(req, res) => {
 	res.send({
 		running: true,
 		status: await network.status()
 	})
 }))
+
+// Setup routes
 
 // Access points
 app.post('/access-points', accessPoints.create)

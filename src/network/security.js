@@ -1,3 +1,7 @@
+/*
+	Security management API
+	TODO/DEPRECATED: This should be moved to a separate service.
+*/
 module.exports = {startSecurityThreatProcessor, enableSecurity, disableSecurity, fetchSecuritySettings, getReport, unblockClientIp, blockClientIp}
 
 const {accessPoint} = require('../network')
@@ -18,6 +22,9 @@ const events = {
 	unblocked: 'unblocked'
 }
 
+/*
+	Get security settings for access point
+*/
 function fetchSecuritySettings(accessPointId, settings) {
 	return db.query('SELECT * FROM access_point_settings WHERE access_point_id = ?', [accessPointId]).then(result => {
 		if (!result.length) {
@@ -34,6 +41,9 @@ function fetchSecuritySettings(accessPointId, settings) {
 	})
 }
 
+/*
+	Get security event report
+*/
 function getReport(accessPointId, since, till) {
 
 	const params = [
@@ -50,6 +60,9 @@ function getReport(accessPointId, since, till) {
 	})
 }
 
+/*
+	Log security event
+*/
 function addLogEntry(accessPointId, type, details, occurredAt) {
 
 	const params = [
@@ -63,6 +76,9 @@ function addLogEntry(accessPointId, type, details, occurredAt) {
 	return db.query('INSERT INTO event (id, access_point_id, type, occurred_at, details) VALUES(?, ?, ?, ?, ?)', params)
 }
 
+/*
+	Store security settings for access point
+*/
 function storeSecuritySettings(accessPointId, settings) {
 	const options = JSON.stringify(settings.options || defaultOptions)
 	const enabled = settings.enabled ? 1 : 0
@@ -71,6 +87,9 @@ function storeSecuritySettings(accessPointId, settings) {
 	return db.query('INSERT INTO access_point_settings (access_point_id, enabled, options) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE enabled = ?, options = ?', params)
 }
 
+/*
+	Enable access point security
+*/
 async function enableSecurity(accessPointId, options) {
 
 	log.debug(`enabling security for ${accessPointId}`)
@@ -105,6 +124,9 @@ async function enableSecurity(accessPointId, options) {
 	return collectorSet && softflowdEnabled
 }
 
+/*
+	Disable access point security
+*/
 async function disableSecurity(accessPointId, options) {
 
 	log.debug(`disabling security for ${accessPointId}`)
@@ -130,6 +152,10 @@ async function disableSecurity(accessPointId, options) {
 // TODO move to redis
 const macAddresses = {}
 const macCacheTimeout = 60000 // cache for 1 min
+
+/*
+	Find client MAC address
+*/
 async function getClientMacAddress(accessPointId, ipAddress) {
 	const key = `${accessPointId}-${ipAddress}`
 	if (macAddresses[key] && macAddresses[key].timestamp > Date.now() - macCacheTimeout && macAddresses[key].value) {
@@ -149,6 +175,9 @@ async function getClientMacAddress(accessPointId, ipAddress) {
 	return macAddress
 }
 
+/*
+	Unblock IP address for access point
+*/
 async function unblockClientIp(accessPointId, ipAddress) {
 	const ap = accessPoint(accessPointId)
 	const macAddress = await getClientMacAddress(accessPointId, ipAddress)
@@ -160,9 +189,10 @@ async function unblockClientIp(accessPointId, ipAddress) {
 }
 
 const blocked = {}
+/*
+	Block client by IP on access point
+*/
 async function blockClientIp(accessPointId, ipAddress, period) {
-	
-	// shitty double block prevention
 	// TODO move this to redis
 	const blockKey = `${accessPointId}-${ipAddress}`
 	log.debug('block request for %s on %s, last block %d', accessPointId, ipAddress, blocked[blockKey] || 0)
@@ -191,6 +221,10 @@ async function blockClientIp(accessPointId, ipAddress, period) {
 	return success
 }
 
+/*
+	React to detected threat.
+	Blocks logs the threat and bans offender IP on reporting AP for 1h.
+*/
 async function processThreatMsg(msg)
 {
     if (msg !== null) {
@@ -227,6 +261,9 @@ async function processThreatMsg(msg)
 	}
 }
 
+/*
+	Start security threat message processor
+*/
 function startSecurityThreatProcessor() {
 	const amqpConnection = amqp.connect([process.env.AMQP_URI])	
 	const amqpChannel = amqpConnection.createChannel({

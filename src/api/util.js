@@ -1,6 +1,7 @@
 const boom = require('boom')
 const log = require('../log')('api')
 
+// handle async errors
 const asyncMiddleware = fn => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch((err) => {
     if (!err.isBoom) {

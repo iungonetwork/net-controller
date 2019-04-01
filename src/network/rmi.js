@@ -1,4 +1,6 @@
-// Remote management interface
+/*
+	Access point remote management interface API
+*/
 
 const keypair = require('keypair'),
 	  apdb = require('./apdb'),
@@ -6,6 +8,10 @@ const keypair = require('keypair'),
 	  SshClient = require('ssh2').Client,
 	  log = require('../log')('rmi')
 
+/*
+	Issue key pair
+	Note: includes private, public and public_ssh (used to add to authorized_keys) keys.
+*/
 function issueKeyPair(accessPointId) {
 	const keys = keypair(),
     	  publicKey = forge.pki.publicKeyFromPem(keys.public)
@@ -15,6 +21,11 @@ function issueKeyPair(accessPointId) {
  	return keys;
 }
 
+/*
+	Run remote command on access point.
+	Resolves to: {"code": X, "stdout": "...", "stderr": "...", "signal": X} if RMI was able to execute the command
+	Throws error if access point is not reachable.
+*/
 async function runRemoteCommand(accessPointId, command) {
 
 	const ap = await apdb.find(accessPointId)
