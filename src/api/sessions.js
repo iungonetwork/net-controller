@@ -27,7 +27,7 @@ module.exports.check = asyncMiddleware(async(req, res) => {
 	log.debug('session %s update notification from radius', sessionId)
 
 	// primitive means to overcome race condition when db row is updated after rest call
-	log.debug('waiting 10s before fetching session %s data', sessionId)
+	log.debug('waiting 1s before fetching session %s data', sessionId)
 	setTimeout(function() {
 		log.debug('fetching session %s data', sessionId)
 		raddb.getSession(sessionId).then(async(session) => {
@@ -37,8 +37,8 @@ module.exports.check = asyncMiddleware(async(req, res) => {
 				const msg = {
 					userId: session.username,
 					accessPointId: session.nasid,
-					bytesIn: session.acctoutputoctets,
-					bytesOut: session.acctinputoctets,
+					bytesOut: session.acctoutputoctets,
+					bytesIn: session.acctinputoctets,
 					bytesTotal: session.acctinputoctets + session.acctoutputoctets,
 					startedAt: session.acctstarttime,
 					stoppedAt: session.acctstoptime,
@@ -59,7 +59,7 @@ module.exports.check = asyncMiddleware(async(req, res) => {
 		}).catch(err => {
 			log.debug('session %s data not available', sessionId)
 		})
-	}, 10000)
+	}, 1000)
 
 	res.send({"Acct-Session-Id": sessionId})
 })
