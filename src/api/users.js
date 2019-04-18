@@ -5,7 +5,9 @@
 const 
 	boom = require('boom'),
 	{asyncMiddleware, log} = require('./util'),
-	network = require('../network')
+	network = require('../network'),
+	superagent = require('superagent'),
+	DEFAULT_HOSTAPD_SESSION_TIMEOUT = 3600
 
 /*
 	Create network user
@@ -46,6 +48,44 @@ module.exports.disable = asyncMiddleware(async(req, res) => {
 	const status = await network.user(userId).disable()
 
 	res.json({success: status})
+})
+
+/*
+	Authorize user.
+*/
+module.exports.authorize = asyncMiddleware(async(req, res) => {
+
+	const userId = req.body['User-Name']
+	const accessPointId = req.body['NAS-Identifier']
+
+	if (!(userId && accessPointId)) {
+		res.json({})
+		return
+	}
+
+	const chilliRequest = req.body['ChilliSpot-Version'] != ''
+
+	superagent.post('http://core-api/v1/account/check')
+  		.send({userId, accessPointId})
+  		.end((err, result) => {
+
+  			if (err) {
+  				throw boom.badRequest('Failed to check user balance')
+  			}
+
+  			const bytesAvailable = result.body
+
+  			if (bytesAvailable <= 0) {
+  				// User account is empty, deny access
+  				res.status(401).json({})
+  			} else {
+  				if (chilliRequest) {
+  					res.json({'ChilliSpot-Max-Input-Octets': bytesAvailable})
+  				} else {
+  					res.json({'Session-Timeout': DEFAULT_HOSTAPD_SESSION_TIMEOUT})
+  				}
+  			}
+  		})
 })
 
 /*

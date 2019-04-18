@@ -44,6 +44,7 @@ app.post('/users', users.create)
 app.post('/users/:userId/disable', users.disable)
 app.get('/users/:userId', users.getCredentials)
 app.get('/users/:userId/captiveCredentials/:accessPointId/:challenge', users.getCaptiveCredentials)
+app.post('/authorize', users.authorize)
 
 // Sessions
 app.post('/sessions/:sessionId', sessions.check)
