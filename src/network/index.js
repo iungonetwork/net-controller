@@ -149,7 +149,7 @@ function user(userId) {
 		getCaptiveResponse: async function(accessPointId, challenge) {
 			const password = await raddb.getUserPassword(userId)
 			const accessPoint = await apdb.find(accessPointId)
-			return captive.manglePassword(challenge, accessPoint.secret, password)
+			return captive.manglePassword(challenge, accessPoint.captiveSecret, password)
 		},
 
 		getPassword: async function() {
