@@ -10,7 +10,7 @@ const crypto = require('crypto'),
 	Generate a secret for access point captive service (Coova Chilli)
 */
 module.exports.generateSecret = function() {
-	return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+	return Math.random().toString(36).substring(2, 15)
 }
 
 /*
