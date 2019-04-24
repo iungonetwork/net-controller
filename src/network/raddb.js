@@ -87,7 +87,7 @@ function addUser(username) {
 	Generates random password
 */
 function generateSecret() {
-	return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+	return Math.random().toString(36).substring(2, 15)
 }
 
 module.exports = { getUserPassword, addUser, addNas, getSession, disableUser, getActiveSessions, getNasIdByIp }
