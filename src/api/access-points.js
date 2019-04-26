@@ -28,6 +28,9 @@ module.exports.create = asyncMiddleware(async(req, res) => {
 
 	const accessPoint = await network.accessPoint(accessPointId).create(macAddress);
 
+	accessPoint.managementKey = accessPoint.rmiKeys.public_ssh
+	delete accessPoint.rmiKeys
+
 	res.json(accessPoint)
 })
 
