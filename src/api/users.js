@@ -53,7 +53,7 @@ module.exports.disable = asyncMiddleware(async(req, res) => {
 /*
 	Authorize user.
 */
-module.exports.authorize = asyncMiddleware(async(req, res) => {
+module.exports.authorize = asyncMiddleware(async(req, res, next) => {
 
 	const userId = req.body['User-Name']
 	const accessPointId = req.body['NAS-Identifier']
@@ -70,7 +70,7 @@ module.exports.authorize = asyncMiddleware(async(req, res) => {
   		.end((err, result) => {
 
   			if (err) {
-  				throw boom.badRequest('Failed to check user balance')
+  				return next(boom.badRequest('Failed to check user balance'))
   			}
 
   			const bytesAvailable = result.body
