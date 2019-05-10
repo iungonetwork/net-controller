@@ -10,5 +10,5 @@ api.listen(process.env.PORT || 80)
 
 // Launch REPL interface for manual interaction with network
 if (process.env.REPL_ENABLED) {
-	createRepl.listen(process.env.REPL_PORT || 5000);
+	createRepl().listen(process.env.REPL_PORT || 5000);
 }
