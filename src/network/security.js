@@ -69,7 +69,7 @@ function addLogEntry(accessPointId, type, details, occurredAt) {
 		null,
 		accessPointId,
 		type,
-		occurredAt ? occurredAt.toJSON() : (new Date()).toJSON(),
+		(occurredAt ? occurredAt : new Date()).toISOString().slice(0, 19).replace('T', ' '),
 		details ? JSON.stringify(details) : '{}'
 	]
 
@@ -256,8 +256,6 @@ async function processThreatMsg(msg)
 	    } catch(err) {
 	    	log.error(err.message)	
 	    }
-
-	    ch.ack(msg);
 	}
 }
 
@@ -270,7 +268,7 @@ function startSecurityThreatProcessor() {
 	 	json: true,
 	  	setup: function(amqpChannel) {
 	        const q = amqpChannel.assertQueue(securityThreatQueue, {durable: true})
-	  		amqpChannel.consume(securityThreatQueue, processThreatMsg)
+	  		amqpChannel.consume(securityThreatQueue, processThreatMsg, {noAck: true})
 	        return q
 	    }
 	});
