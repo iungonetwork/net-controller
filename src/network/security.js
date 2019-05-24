@@ -97,21 +97,61 @@ async function enableSecurity(accessPointId, options) {
 
 	let collectorSet, softflowdEnabled
 	
+	const softflowdSetup = 'uci delete softflowd.@softflowd[1]; uci delete softflowd.@softflowd[0]; ' + [
+		
+		// hs20 radio setup
+		'uci add softflowd softflowd',
+		'uci set softflowd.@softflowd[0].enabled="1"',
+		'uci set softflowd.@softflowd[0].timeout="maxlife=15"',
+		'uci set softflowd.@softflowd[0].max_flows="8192"',
+		'uci set softflowd.@softflowd[0].pid_file="/var/run/softflowd0.pid"',
+		'uci set softflowd.@softflowd[0].control_socket="/var/run/softflowd0.ctl"',
+		'uci set softflowd.@softflowd[0].export_version="5"',
+		'uci set softflowd.@softflowd[0].tracking_level="full"',
+		'uci set softflowd.@softflowd[0].track_ipv6="0"',
+		`uci set softflowd.@softflowd[0].host_port="${collector}"`,
+		'uci set softflowd.@softflowd[0].interface="wlan0-hs20"',
+		'uci set softflowd.@softflowd[0].sampling_rate="1"',
+
+		// captive radio setup
+		'uci add softflowd softflowd',
+		'uci set softflowd.@softflowd[1].enabled="1"         ',
+		'uci set softflowd.@softflowd[1].timeout="maxlife=15"             ',
+		'uci set softflowd.@softflowd[1].max_flows="8192"                       ',
+		'uci set softflowd.@softflowd[1].pid_file="/var/run/softflowd1.pid"     ',
+		'uci set softflowd.@softflowd[1].control_socket="/var/run/softflowd1.ctl"',
+		'uci set softflowd.@softflowd[1].export_version="5"   ',
+		'uci set softflowd.@softflowd[1].tracking_level="full"       ',
+		'uci set softflowd.@softflowd[1].track_ipv6="0"              ',
+		`uci set softflowd.@softflowd[1].host_port="${collector}"`,
+		'uci set softflowd.@softflowd[1].interface="tun1"',
+		'uci set softflowd.@softflowd[1].sampling_rate="1"',
+		'uci commit'
+	].join(' && ')
+
 	try	{
-		collectorSet = await ap.run(`uci set softflowd.@softflowd[0].host_port="${collector}" && uci set softflowd.@softflowd[0].interface="tun1" && uci set softflowd.@softflowd[0].sampling_rate="1" && uci commit`).then(result => result.code === 0)
+		collectorSet = await ap.run(softflowdSetup).then(result => result.code === 0)
 		softflowdEnabled = await ap.run(`/etc/init.d/softflowd enable && /etc/init.d/softflowd restart`).then(result => result.code === 0)
 
 		if (!options.allowTorrents) {
 			const rules = [
-				'iptables -I FORWARD 1 -i tun1 -m comment --comment "!iungo:block_torrents" -p tcp -m multiport --dports 6880:7000 -j DROP',
-				'iptables -I FORWARD 1 -i tun1 -m comment --comment "!iungo:block_torrents" -p udp -m multiport --dports 6880:7000 -j DROP',
-				'iptables -I FORWARD 1 -i tun1 -m comment --comment "!iungo:block_torrents" -p tcp -m multiport --sports 51413,19222 -j DROP',
-				'iptables -I FORWARD 1 -i tun1 -m comment --comment "!iungo:block_torrents" -p udp -m multiport --sports 51413,19222 -j DROP',
+				'echo "iptables -I FORWARD 1 -i tun1 -p tcp -m multiport --dports 6880:7000 -j DROP #IUNGO-TORRENTS" >> /etc/firewall.user',
+				'echo "iptables -I FORWARD 1 -i tun1 -p udp -m multiport --dports 6880:7000 -j DROP #IUNGO-TORRENTS" >> /etc/firewall.user',
+				'echo "iptables -I FORWARD 1 -i tun1 -p tcp -m multiport --sports 51413,19222 -j DROP #IUNGO-TORRENTS" >> /etc/firewall.user',
+				'echo "iptables -I FORWARD 1 -i tun1 -p udp -m multiport --sports 51413,19222 -j DROP #IUNGO-TORRENTS" >> /etc/firewall.user',
+				'echo "iptables -I FORWARD 1 -i wlan0-hs20 -p tcp -m multiport --dports 6880:7000 -j DROP #IUNGO-TORRENTS" >> /etc/firewall.user',
+				'echo "iptables -I FORWARD 1 -i wlan0-hs20 -p udp -m multiport --dports 6880:7000 -j DROP #IUNGO-TORRENTS" >> /etc/firewall.user',
+				'echo "iptables -I FORWARD 1 -i wlan0-hs20 -p tcp -m multiport --sports 51413,19222 -j DROP #IUNGO-TORRENTS" >> /etc/firewall.user',
+				'echo "iptables -I FORWARD 1 -i wlan0-hs20 -p udp -m multiport --sports 51413,19222 -j DROP #IUNGO-TORRENTS" >> /etc/firewall.user',
+				'/etc/init.d/firewall restart'
 			]
 			ap.run(rules.join(' && '))
 		} else {
-			// remove torrent rules
-			ap.run('iptables-save | grep -v !iungo:block_torrents | iptables-restore')
+			ap.run([
+				'grep -v "#IUNGO-TORRENTS" /etc/firewall.user > /tmp/firewall.user',
+				'mv /tmp/firewall.user /etc/firewall.user',
+				'/etc/init.d/firewall restart'
+			].join(' && '))
 		}
 		
 		await storeSecuritySettings(accessPointId, {enabled: 1, options: options})
@@ -137,7 +177,13 @@ async function disableSecurity(accessPointId, options) {
 		const settings = await fetchSecuritySettings(accessPointId)
 		softflowdDisabled = await ap.run(`/etc/init.d/softflowd disable && /etc/init.d/softflowd stop`).then(result => result.code === 0)
 		settings.enabled = 0
-		ap.run('iptables-save | grep -v !iungo:block_torrents | iptables-restore')
+		
+		ap.run([
+			'grep -v "#IUNGO-TORRENTS" /etc/firewall.user > /tmp/firewall.user',
+			'mv /tmp/firewall.user /etc/firewall.user',
+			'/etc/init.d/firewall restart'
+		].join(' && '))
+
 		await storeSecuritySettings(accessPointId, settings)
 		await addLogEntry(accessPointId, events.off)
 	} catch(err) {
