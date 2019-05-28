@@ -75,15 +75,17 @@ module.exports.authorize = asyncMiddleware(async(req, res, next) => {
 
   			const bytesAvailable = result.body
 
-  			if (bytesAvailable <= 0) {
+  			if (bytesAvailable == 0) {
   				// User account is empty, deny access
   				res.status(401).json({})
-  			} else {
+  			} else if(bytesAvailable > 0) {
   				if (chilliRequest) {
   					res.json({'ChilliSpot-Max-Input-Octets': bytesAvailable})
   				} else {
   					res.json({'Session-Timeout': DEFAULT_HOSTAPD_SESSION_TIMEOUT})
   				}
+  			} else {
+  				res.json({})
   			}
   		})
 })
