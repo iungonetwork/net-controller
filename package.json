@@ -21,7 +21,7 @@
     "ip": "^1.1.5",
     "iprange": "^0.1.0",
     "iproute": "^1.0.2",
-    "keypair": "^1.0.1",
+    "keypair": "^1.0.4",
     "mysql": "^2.16.0",
     "netmask": "^1.0.6",
     "node-forge": "^0.7.6",
